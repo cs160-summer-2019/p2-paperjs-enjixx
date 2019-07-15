@@ -41,7 +41,7 @@
       margin-bottom: 10px;
     }
     
-    .undoButton {
+    .Button {
       width: 50px;
       height: 50px;
       margin-right : 15px;
@@ -65,6 +65,10 @@
 	<script type="text/javascript" canvas="canvas">
 		window.onload = function() {
 			var canvas = document.getElementById('myCanvas');
+      var favoriteList = {
+        added : [],
+        $container: $('#favorite-palette')
+      }
 			// coloring page
 			var mandala = {
 				item: null,
@@ -75,9 +79,11 @@
 			// color palette
 			var cp = {
 				history: ["#000000"], // black selected by default
+        recently_used : [],
 				options: [],
 				$container: $('#color-palette')
 			};
+      
       
     
 			// your rectangle gradient interaction goes in this function
@@ -124,20 +130,22 @@
 			// your custom interaction goes here!
 			// you may replace everything
 			function myCustomInteraction() {
+        
 				var tool = new paper.Tool();
         var rectangle = new paper.Rectangle(200, 300, 0, 0);
         var path = new paper.Path.Rectangle(rectangle);
-        
+        //console.log(mandala.item);
+
         
         tool.onMouseDown = function (event) {
 				    var hit = mandala.item.hitTest(event.point, { tolerance: 0, fill: true });
-            
+            var selectedColor;
 				    if (hit) {
 				        hit.item.fillColor = cp.history[cp.history.length - 1];
+                selectedColor = hit.item.fillColor;
                 mandala.lastClicked.push(event.point)
-            }            
+            }
 				}
-        console.log(cp.item);
  			}
       
       
@@ -149,14 +157,16 @@
 				for (var i = colors.length - 1; i >= 0; i--) {
           var $swatch = $("<img src = '/static/coloring/images/crayon.svg'>").css("background-color", colors[i])
           .addClass("crayon");
-         
+ 
 					$swatch.click(function(){
 						// add color to the color palette history
 					  	cp.history.push($(this).css("background-color"));
+              cp.recently_used.push($(this));
 					});
 					cp.$container.append($swatch);
 				}
-        var $undoSwatch = $("<button><img src = '/static/coloring/images/round-undo-24px.svg'></button>").addClass("undoButton");
+        
+        var $undoSwatch = $("<button><img src = '/static/coloring/images/round-undo-24px.svg'></button>").addClass("Button");
         $undoSwatch.click(function(){
           if (mandala.lastClicked == null) {
             console.log("choose colors");
@@ -164,9 +174,28 @@
           } else {
             var segment = mandala.item.hitTest(mandala.lastClicked.pop(), {fill: true});
             segment.item.fillColor = "#FFFFFF"
-            console.log(mandala.lastClicked);          }
+          }
         });
         cp.$container.append($undoSwatch);
+        
+        var $addSwatch = $("<button><img src = '/static/coloring/images/baseline-thumb_up_alt-24px.svg'></button>").addClass("Button");
+        favoriteList.$container.append($addSwatch);
+        
+        $addSwatch.click(function(){
+          if (mandala.lastClicked == null) {
+            console.log("choose color");
+          } else {
+            
+            var $cray = cp.recently_used[cp.recently_used.length-1];
+            favoriteList.added.push($cray);
+            favoriteList.$container.append($cray);
+          }
+        });
+        
+        $(".crayon").click(function(){
+          console.log("yay");
+          
+        });
 			}
       
 
@@ -197,6 +226,7 @@
 				    	myGradientInteraction();
 				    }				
 				}); 
+        
 			}
 
 			// To see your myGradientInteraction version visit: 
